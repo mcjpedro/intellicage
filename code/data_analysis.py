@@ -1,11 +1,13 @@
 import pymice
 import pandas
+import numpy
+import matplotlib.pyplot as plot
 from datetime import timedelta
 from tkinter import filedialog
 from tkinter import *
 
 class get_files():
-    def __init__(self):
+    def __init__(self, number_of_marge_data=1):
         root = Tk()
         root.withdraw()
         folder_tuple = filedialog.askopenfilenames(title='Open a file', filetypes=[('zip files', '*.zip')])
@@ -72,16 +74,33 @@ class data_analysis():
         self.nosepoke_data_frame = nosepoke_data_frame
     
     def visits_eventplot(self, protocol_start, protocol_end):
-        total_time = protocol_end - protocol_start
-        self.nosepoke_data_frame['time_from_init_0'] = self.nosepoke_data_frame.apply(lambda row: row.visit_start - protocol_start, axis=1)
-        self.nosepoke_data_frame['time_from_init_1'] = self.nosepoke_data_frame.apply(lambda row: row.visit_end - protocol_start, axis=1)
-        print(self.nosepoke_data_frame)
-        self.nosepoke_data_frame.to_excel("output.xlsx")
+        total_time_ms = int((protocol_end - protocol_start).total_seconds()*1000)
+        vector_time_ms = numpy.arange(0, total_time_ms, 1)
+        
+        self.visits_data_frame['time_from_init_0'] = self.visits_data_frame.apply(lambda row: int((row.visit_start - protocol_start).total_seconds()*1000), axis=1)
+        self.visits_data_frame['time_from_init_1'] = self.visits_data_frame.apply(lambda row: int((row.visit_end - protocol_start).total_seconds()*1000), axis=1)
+        
+        eventplot_dict = {}
+        for animal in self.animals_data_frame['name']:
+            eventplot_dict[animal] = []
+            data_per_animal = self.visits_data_frame.loc[self.visits_data_frame['animal'] == animal]
+            for _, visit in data_per_animal.iterrows():
+                eventplot_dict[animal] += list(range(visit['time_from_init_0'], visit['time_from_init_1'], 1))
+        
+        plot.eventplot(eventplot_dict.values(), orientation = 'horizontal', linelengths = 0.2, color = [(0.5,0.5,0.8)])
+        plot.show()
+
+        self.visits_data_frame.to_excel("output.xlsx")
 
     # Fazer um ectograma para cada animal
 
 files = get_files()
 data = set_data(files.folder)
+animals_data_frame = data.make_table_animals()
 visits_data_frame = data.make_table_visits()
-analysis = data_analysis(None, None, visits_data_frame)
+
+print(animals_data_frame)
+print(visits_data_frame)
+
+analysis = data_analysis(animals_data_frame, visits_data_frame)
 analysis.visits_eventplot(data.start, data.end)
