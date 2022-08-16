@@ -1,10 +1,26 @@
+import pandas as pd
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource
 
-import numpy as np
-import matplotlib.pyplot as plt
+df = pd.DataFrame({'y':[1,2,3,4,4], 
+                   'start':[0, 1, 1, 10, 6], 
+                   'duration':[1, 2, 1, 5, 2], 
+                   'color':['green', 'red', 'blue', 'red', 'green']
+                  })
 
-spike = [1,2,3,5,8,10]
-plt.eventplot(spike, 
-              orientation = 'vertical',
-              linelengths = 0.8, 
-              color = [(0.5,0.5,0.8)])
-plt.show()
+p = figure(
+    width=350,
+    height=350,
+    title="Task Stream",
+    toolbar_location="above",
+)
+
+p.rect(
+    source=ColumnDataSource(df),
+    x="start",
+    width="duration",
+    height=0.4,
+    fill_color="color",
+    line_color="color",
+)
+show(p)
