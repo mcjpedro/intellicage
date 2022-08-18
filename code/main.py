@@ -2,7 +2,7 @@
 import pandas
 import datetime
 import data_handler
-from data_analysis import data_analysis
+#from data_analysis import data_analysis
 
 #%%
 #files = data_handler.get_files()
@@ -15,22 +15,37 @@ _, visits = data.make_data_frames(animals=True, visits=True, nosepokes=False, to
 #analysis.visit_duration_per_corner(show_all_points=True)
 
 # %%
-data_range = pandas.date_range(data.start, data.end, freq='1H').to_list()
-duration_per_step = []
 
-for time in range(0, len(data_range) - 1):
-    duration_per_step.append(datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0))
-    for visit in zip(visits['visit_start'], visits['visit_end']):
-        if visit[0] >= data_range[time] and visit[0] < data_range[time + 1] and visit[1] <= data_range[time + 1]:
-            duration_per_step[-1] += (visit[1] - visit[0])
-            pass
-        elif visit[0] >= data_range[time] and visit[0] < data_range[time + 1] and visit[1] > data_range[time + 1]:
-            duration_per_step[-1] += (data_range[time + 1] - visit[0])
-            pass
-    
+date_range = pandas.date_range(data.start, data.end, freq='10S')
+date_range = pandas.DataFrame({'range_start': date_range[:-1], 'range_end': date_range[1:]})
+
 # %%
-data_frame = pandas.DataFrame({'data_range': data_range[:-1], 'duration_per_step': duration_per_step})
 
-print(data_frame)
+#cut_visits = visits.loc[visits['visit_start'] >= date_range['range_start'] and visits['visit_end'] < date_range['range_end']]
 
+duration_per_range = []
+entries_per_range = []
+for index, row in date_range.iterrows():
+    entries_per_range.append(0)
+    contained_visits = visits.loc[(visits['visit_start'] >= row['range_start']) & (visits['visit_end'] < row['range_end'])]['duration_date']
+    entries_per_range[-1] += len(contained_visits)
+    contained_visits = contained_visits.sum()
+    edge_visits_0 = (visits.loc[(visits['visit_start'] < row['range_start']) & (visits['visit_end'] < row['range_end']) & (visits['visit_end'] >= row['range_start'])]['visit_end'] - row['range_start']).sum()
+    edge_visits_1 = row['range_end'] - visits.loc[(visits['visit_start'] >= row['range_start']) & (visits['visit_start'] < row['range_end']) & (visits['visit_end'] >= row['range_end'])]['visit_start']
+    entries_per_range[-1] += len(edge_visits_1)
+    edge_visits_1 = edge_visits_1.sum()
+    contains_visits = len(visits.loc[(visits['visit_start'] < row['range_start']) & (visits['visit_end'] >= row['range_end'])])*(row['range_end'] - row['range_start'])
+    duration_per_range.append((contained_visits + edge_visits_0 + edge_visits_1 + contains_visits).total_seconds())
+
+date_range['duration_per_range'] = duration_per_range
+date_range['entries_per_range'] = entries_per_range
+
+# %%
+#print(date_range)
+
+date_range.to_excel('date_range.xlsx')
+visits[['visit_start', 'visit_end', 'duration_seconds']].to_excel('visits.xlsx')
+
+# %%
+date_range.head()
 # %%

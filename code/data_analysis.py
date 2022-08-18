@@ -20,7 +20,7 @@ class data_analysis():
     def visits_eventplot(self, grouped_by='animal'):                
         if grouped_by == 'animal':
             p = figure(width = 600, height = 600, title = "EVENTPLOT OF VISITS", x_axis_label='Protocol Date', y_axis_label='Animals', x_axis_type="datetime")
-            p.rect(source=ColumnDataSource(c), x="visit_start", y="animal_number", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
+            p.rect(source=ColumnDataSource(self.visits_df), x="visit_start", y="animal_number", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
             p.yaxis.ticker = list(self.animals_dictionary.values())
             p.yaxis.major_label_overrides = dict((index, animal) for animal, index in self.animals_dictionary.items())
         elif grouped_by == 'corner':
@@ -36,20 +36,7 @@ class data_analysis():
         #self.visits_df.to_excel("output.xlsx")
 
     def visits_eventplot_1(self):
-        data_range = pandas.date_range(self.start_date, self.end_date, freq='1H').to_list()
-        duration_per_step = []
-
-        for time in range(0, len(data_range) - 1):
-            duration_per_step.append(timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0))
-            for visit in zip(self.visits_df['visit_start'], self.visits_df['visit_end']):
-                if visit[0] >= data_range[time] and visit[0] < data_range[time + 1] and visit[1] <= data_range[time + 1]:
-                    duration_per_step[-1] += (visit[1] - visit[0])
-                    pass
-                elif visit[0] >= data_range[time] and visit[0] < data_range[time + 1] and visit[1] > data_range[time + 1]:
-                    duration_per_step[-1] += (data_range[time + 1] - visit[0])
-                    pass
-
-        data_frame = pandas.DataFrame({'data_range': data_range[:-1], 'duration_per_step': duration_per_step})
+        pass
 
     def visit_duration_per_animal(self, plot=True, save_excel=False, show_all_points=False):
         pivot_data_frame = pandas.pivot_table(self.visits_df, index=['animal_number'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
