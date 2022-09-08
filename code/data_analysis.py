@@ -12,20 +12,16 @@ class data_analysis():
         self.end_date = self.data.end
         self.animals = self.data.animals
         self.animals_dictionary = self.data.animals_dictionary
-        
-        if len(data.data_frames) >= 1: self.animals_df = self.data.data_frames[0]
-        if len(data.data_frames) >= 2: self.visits_df = self.data.data_frames[1]
-        if len(data.data_frames) == 3: self.nosepokes_df = self.data.data_frames[2]
     
     def visits_eventplot(self, grouped_by='animal'):                
         if grouped_by == 'animal':
             p = figure(width = 600, height = 600, title = "EVENTPLOT OF VISITS", x_axis_label='Protocol Date', y_axis_label='Animals', x_axis_type="datetime")
-            p.rect(source=ColumnDataSource(self.visits_df), x="visit_start", y="animal_number", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
+            p.rect(source=ColumnDataSource(self.data.visits_df), x="visit_start", y="animal_number", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
             p.yaxis.ticker = list(self.animals_dictionary.values())
             p.yaxis.major_label_overrides = dict((index, animal) for animal, index in self.animals_dictionary.items())
         elif grouped_by == 'corner':
             p = figure(width = 600, height = 600, title = "EVENTPLOT OF VISITS", x_axis_label='Protocol Date', y_axis_label='Corner', x_axis_type="datetime")
-            p.rect(source=ColumnDataSource(self.visits_df), x="visit_start", y="corner", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
+            p.rect(source=ColumnDataSource(self.data.visits_df), x="visit_start", y="corner", width="duration_date", height=0.5, fill_color="#353535", line_color="#353535")
             p.yaxis.ticker = [1,2,3,4]
         
         days_range = pandas.date_range(self.start_date, self.end_date, freq='d', normalize=True, inclusive="right").to_list()
@@ -33,13 +29,13 @@ class data_analysis():
             p.add_layout(Span(location=date, dimension='height', line_color='#A21F27', line_dash='dashed', line_width=2, name='Day limit'))
         show(p)
         
-        #self.visits_df.to_excel("output.xlsx")
+        #self.data.visits_df.to_excel("output.xlsx")
 
     def visits_eventplot_1(self):
         pass
 
     def visit_duration_per_animal(self, plot=True, save_excel=False, show_all_points=False):
-        pivot_data_frame = pandas.pivot_table(self.visits_df, index=['animal_number'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
+        pivot_data_frame = pandas.pivot_table(self.data.visits_df, index=['animal_number'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
 
         if save_excel:
             pivot_data_frame.to_excel("visit_duration_per_animal.xlsx")
@@ -58,8 +54,8 @@ class data_analysis():
             p.add_layout(Whisker(source=source_error, base="base", upper="upper", lower="lower", line_color="#353535", line_width=2, line_alpha=0.8))
             
             if show_all_points:
-                for animal_number in list(self.visits_df['animal_number'].unique()):
-                    points = self.visits_df[self.visits_df['animal_number'] == animal_number]['duration_seconds']
+                for animal_number in list(self.data.visits_df['animal_number'].unique()):
+                    points = self.data.visits_df[self.data.visits_df['animal_number'] == animal_number]['duration_seconds']
                     p.circle(x=animal_number, y=points, width=0.05, color='#353535', alpha=0.6, line_color="#353535")
 
             p.xaxis.ticker = list(self.animals_dictionary.values())
@@ -69,7 +65,7 @@ class data_analysis():
             show(p)
 
     def visit_duration_per_corner(self, plot=True, save_excel=False, show_all_points=False):
-        pivot_data_frame = pandas.pivot_table(self.visits_df, index=['corner'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
+        pivot_data_frame = pandas.pivot_table(self.data.visits_df, index=['corner'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
 
         if save_excel:
             pivot_data_frame.to_excel("visit_duration_per_corner.xlsx")
@@ -88,8 +84,8 @@ class data_analysis():
             p.add_layout(Whisker(source=source_error, base="base", upper="upper", lower="lower", line_color="#353535", line_width=2, line_alpha=0.8))
             
             if show_all_points:
-                for corner in list(self.visits_df['corner'].unique()):
-                    points = self.visits_df[self.visits_df['corner'] == corner]['duration_seconds']
+                for corner in list(self.data.visits_df['corner'].unique()):
+                    points = self.data.visits_df[self.data.visits_df['corner'] == corner]['duration_seconds']
                     p.circle(x=corner, y=points, width=0.05, color='#353535', alpha=0.6, line_color="#353535")
                 
             p.xaxis.ticker = [1,2,3,4]
