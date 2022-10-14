@@ -4,7 +4,7 @@ from chronobiology import CycleAnalyzer, generate_data
 
 class experiment():
     def __init__(self):
-        self.file_name = "F:/GitHub/intellicage/data_examples_paula/controlDD part1 ale animal01.asc"
+        self.file_name = "G:\\Outros computadores\\Desktop\\GitHub\\intellicage\\data_examples_paula\\controlDD part1 ale animal01.asc"
 
         file = open(self.file_name, 'r')
         lines = file.readlines()
@@ -30,6 +30,10 @@ class experiment():
         self.time = [numpy.datetime64(date) for date in self.time]
         self.sampling_interval = (self.time[1] - self.time[0])
 
+        self.zt_0_time = numpy.datetime64(zt_0_time)
+        _zt_correction = self.time[0] - self.zt_0_time
+        self.time = [date - _zt_correction for date in self.time]
+
     def resample(self, new_sampling_interval):
         _sampling_interval_int = self.sampling_interval.astype(int)
         _sampling_interval_int = _sampling_interval_int*1e-6
@@ -45,7 +49,7 @@ class experiment():
 
             samples = list(range(0, len(self.time), _resample_factor))
             for sample in samples[1:]:   
-                _new_time.append(self.time[sample])
+                _new_time.append(self.time[sample - _resample_factor])
                 _new_parameter.append(sum(self.parameter[sample - _resample_factor:sample]))
                 _new_is_nigth.append(self.is_nigth[sample])
 
@@ -64,8 +68,9 @@ class experiment():
             self.parameter = self.parameter.tolist()
             self.is_nigth = self.is_nigth.tolist()
 
-example = experiment()
-example.resample(180)
+zt_0_time = '2022-06-15T00:00:00.000000'
+example = experiment(zt_0_time)
+example.resample(3600)
 example.array_list()
 example.parameter = numpy.nan_to_num(example.parameter)
 
