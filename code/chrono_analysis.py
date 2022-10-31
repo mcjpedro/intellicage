@@ -3,7 +3,7 @@ from datetime import datetime
 from chronobiology import CycleAnalyzer, generate_data
 
 class experiment():
-    def __init__(self):
+    def __init__(self, zt_0_time):
         self.file_name = "G:\\Outros computadores\\Desktop\\GitHub\\intellicage\\data_examples_paula\\controlDD part1 ale animal01.asc"
 
         file = open(self.file_name, 'r')
