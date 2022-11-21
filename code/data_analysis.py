@@ -31,9 +31,6 @@ class data_analysis():
         
         #self.data.visits_df.to_excel("output.xlsx")
 
-    def visits_eventplot_1(self):
-        pass
-
     def visit_duration_per_animal(self, plot=True, save_excel=False, show_all_points=False):
         pivot_data_frame = pandas.pivot_table(self.data.visits_df, index=['animal_number'], values=['duration_seconds'], aggfunc=[numpy.mean, numpy.std])
 
